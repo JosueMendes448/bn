@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quadro Negro Mobile</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            font-family: serif;
+        }
+
+        /* Área de escrita adaptada para toque */
+        #canvas {
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+            padding-top: 60px; /* Espaço para não ficar sob o entalhe do celular */
+            outline: none;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            display: block;
+        }
+
+        /* Botão flutuante para renderizar no celular */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: #333;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(255,255,255,0.1);
+            z-index: 1000;
+            opacity: 0.7;
+        }
+
+        .fab:active {
+            background: #555;
+            transform: scale(0.95);
+        }
+
+        /* Esconde o botão ao digitar para não atrapalhar */
+        .typing .fab { opacity: 0.1; }
+
+        #canvas::-webkit-scrollbar { width: 0px; }
+    </style>
+</head>
+<body>
+
+    <button class="fab" onclick="render()">∑</button>
+    <div id="canvas" contenteditable="true" spellcheck="false" inputmode="text"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        let typingTimer;
+
+        function render() {
+            MathJax.typesetPromise([canvas]).catch((err) => console.log(err));
+        }
+
+        // Detecta quando o usuário está digitando para suavizar a interface
+        canvas.addEventListener('input', () => {
+            document.body.classList.add('typing');
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                document.body.classList.remove('typing');
+            }, 2000);
+            
+            localStorage.setItem('mobile_math_board', canvas.innerHTML);
+        });
+
+        // No mobile, o Enter duplo pode disparar a renderização
+        canvas.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                render();
+            }
+        });
+
+        window.onload = () => {
+            const savedData = localStorage.getItem('mobile_math_board');
+            if (savedData) {
+                canvas.innerHTML = savedData;
+                render();
+            }
+        };
+    </script>
+</body>
+</html>
